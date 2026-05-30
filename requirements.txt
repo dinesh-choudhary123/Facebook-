@@ -1,0 +1,53 @@
+# ============================================
+# Restaurant Social Media Automation
+# Core Dependencies
+# ============================================
+
+# --- Web Framework ---
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+aiofiles>=23.2.1
+
+# --- HTTP & WebSocket ---
+requests>=2.31.0
+websocket-client>=1.7.0
+
+# --- Image Processing ---
+opencv-python>=4.9.0
+Pillow>=10.2.0
+numpy>=1.26.0
+
+# --- OCR ---
+pytesseract>=0.3.10
+
+# --- Background Removal ---
+# For CPU: pip install "rembg[cpu]" (uncomment below)
+# For GPU: pip install "rembg[gpu]"
+# rembg>=2.0.0
+
+# --- AI Caption Generation ---
+groq>=0.12.0
+google-genai>=1.0.0
+
+# --- Environment ---
+python-dotenv>=1.0.1
+
+# ============================================
+# Optional Dependencies
+# ============================================
+
+# For GPU acceleration with rembg:
+# onnxruntime-gpu>=1.17.0
+
+# For better image processing:
+# scikit-image>=0.22.0
+
+# ============================================
+# Installation commands (copy & run):
+# ============================================
+# pip install -r requirements.txt
+# pip install "rembg[cpu]"   # for CPU
+# pip install "rembg[gpu]"   # for GPU (NVIDIA CUDA)
+# brew install tesseract     # macOS
+# sudo apt install tesseract-ocr  # Linux

@@ -1,0 +1,136 @@
+# ============================================
+# Restaurant Social Media Automation
+# Docker Compose - Full Stack
+# ============================================
+#
+# Usage:
+#   docker compose up -d                   # Start all services
+#   docker compose up -d app-only          # Start just the automation app
+#   docker compose up -d comfyui           # Start just ComfyUI
+#   docker compose logs -f                 # View logs
+#   docker compose down                    # Stop all services
+#
+# GPU Support:
+#   For ComfyUI with GPU, install nvidia-container-toolkit:
+#     sudo apt install nvidia-container-toolkit
+#     sudo systemctl restart docker
+
+services:
+  # ========== Automation App (FastAPI) ==========
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: restaurant-automation
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - uploads:/app/static/uploads
+      - outputs:/app/static/outputs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - COMFYUI_HOST=http://comfyui
+      - COMFYUI_PORT=8188
+      - OLLAMA_HOST=http://ollama
+      - OLLAMA_PORT=11434
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+    env_file:
+      - .env
+    depends_on:
+      - comfyui
+      - ollama
+    restart: unless-stopped
+    networks:
+      - automation-net
+
+  # ========== ComfyUI (SDXL Image Generation) ==========
+  comfyui:
+    image: comfyui/comfyui:latest
+    container_name: restaurant-comfyui
+    ports:
+      - "8188:8188"
+    volumes:
+      - comfyui-models:/workspace/models
+      - comfyui-input:/workspace/input
+      - comfyui-output:/workspace/output
+      - ./comfyui/workflows:/workspace/workflows
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - automation-net
+    profiles:
+      - full
+    command: ["python", "main.py", "--listen", "0.0.0.0", "--port", "8188", "--force-fp16"]
+
+  # ========== Ollama (Local LLM for Captions) ==========
+  ollama:
+    image: ollama/ollama:latest
+    container_name: restaurant-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks:
+      - automation-net
+    profiles:
+      - full
+    command: ["serve"]
+
+  # ========== App Only (No GPU needed) ==========
+  app-only:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: restaurant-automation-only
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - uploads:/app/static/uploads
+      - outputs:/app/static/outputs
+    environment:
+      - LOG_LEVEL=INFO
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - automation-net
+    profiles:
+      - minimal
+
+networks:
+  automation-net:
+    driver: bridge
+
+volumes:
+  uploads:
+  outputs:
+  comfyui-models:
+  comfyui-input:
+  comfyui-output:
+  ollama-models:

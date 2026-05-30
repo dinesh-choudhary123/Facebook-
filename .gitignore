@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+venv/
+.env
+*.so
+
+# Static files (generated)
+static/uploads/*
+static/outputs/*
+!static/uploads/.gitkeep
+!static/outputs/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+
+# ComfyUI (large model files)
+comfyui/models/
+*.safetensors
+*.ckpt
+*.bin
+
+# Rembg model cache (auto-downloaded)
+~/.u2net/
+
+# Temporary
+tmp/
+temp/
