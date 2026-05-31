@@ -48,6 +48,8 @@ class BatchScheduler:
         self._lock = threading.Lock()
         self._log: list[str] = []
         self.interval_minutes = 30
+        self._scheduled_start_timer: Optional[threading.Timer] = None
+        self._scheduled_at: Optional[str] = None
 
     # ── Public API ──────────────────────────────────────────
 
@@ -76,6 +78,7 @@ class BatchScheduler:
             self._running = False
             self._paused = False
             self._cancel_timer()
+            self.cancel_scheduled_start()
 
         self._add_log("🛑 Batch scheduler stopped")
         logger.info("Batch scheduler stopped")
@@ -127,6 +130,7 @@ class BatchScheduler:
                 "failed_count": len([h for h in self._history if h.get("status") == "failed"]),
                 "current_job": self._current_job,
                 "history": self._history[-10:],  # Last 10 entries
+                "scheduled_at": self._scheduled_at,
                 "batch_dir": str(self.batch_dir),
                 "logs": self._log[-50:],  # Last 50 log entries
             }
@@ -191,6 +195,43 @@ class BatchScheduler:
         except Exception as e:
             logger.error(f"Failed to add pair {image_name}: {e}")
             return {"success": False, "message": str(e)}
+
+    def schedule_start(self, interval_minutes: int, scheduled_at_iso: str) -> Dict[str, Any]:
+        """Schedule the batch scheduler to auto-start at a specific time."""
+        try:
+            scheduled_dt = datetime.fromisoformat(scheduled_at_iso)
+            delay = (scheduled_dt - datetime.now()).total_seconds()
+            
+            # Save interval immediately for correct status display
+            self.interval_minutes = interval_minutes
+            
+            if delay < 0:
+                self._scheduled_at = None
+                self.start(interval_minutes)
+                return {"success": True, "message": f"Scheduled time already passed. Starting now with {interval_minutes} min interval."}
+
+            # Cancel any existing timer first, THEN set new schedule
+            self.cancel_scheduled_start()
+            self._scheduled_at = scheduled_at_iso
+            self._scheduled_start_timer = threading.Timer(delay, self.start, args=[interval_minutes])
+            self._scheduled_start_timer.daemon = True
+            self._scheduled_start_timer.start()
+
+            time_str = scheduled_dt.strftime("%Y-%m-%d %H:%M")
+            self._add_log(f"📅 Scheduled to start at {time_str} (every {interval_minutes} min)")
+            logger.info(f"Batch scheduled to start at {time_str}")
+            return {"success": True, "message": f"Scheduled to start at {time_str}"}
+        except Exception as e:
+            logger.error(f"Failed to schedule start: {e}")
+            return {"success": False, "message": str(e)}
+            return {"success": False, "message": str(e)}
+
+    def cancel_scheduled_start(self):
+        '''Cancel a previously scheduled start.'''
+        if self._scheduled_start_timer:
+            self._scheduled_start_timer.cancel()
+            self._scheduled_start_timer = None
+        self._scheduled_at = None
 
     # ── Internal Logic ──────────────────────────────────────
 

@@ -46,3 +46,7 @@ comfyui/models/
 # Temporary
 tmp/
 temp/
+
+# Backup files
+*.bak
+*.bak2
