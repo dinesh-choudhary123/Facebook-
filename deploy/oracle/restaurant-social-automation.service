@@ -1,0 +1,28 @@
+[Unit]
+Description=Restaurant Social Automation API
+Documentation=https://github.com/dinesh-choudhary123/Facebook-
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/restaurant-social-automation
+Environment=PATH=/home/ubuntu/restaurant-social-automation/venv/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/ubuntu/restaurant-social-automation/venv/bin/uvicorn api.app:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips='*'
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+LimitNPROC=4096
+StandardOutput=append:/home/ubuntu/restaurant-social-automation/logs/app.log
+StandardError=append:/home/ubuntu/restaurant-social-automation/logs/app.log
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/home/ubuntu/restaurant-social-automation
+
+[Install]
+WantedBy=multi-user.target
