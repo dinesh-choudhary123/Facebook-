@@ -74,3 +74,22 @@ sudo certbot --nginx -d yourdomain.com
 - [Oracle Cloud Sign Up](https://signup.cloud.oracle.com)
 - [Oracle Free Tier Docs](https://www.oracle.com/cloud/free/)
 - [GitHub Repo](https://github.com/dinesh-choudhary123/Facebook-)
+
+## Keeping Your VM Active
+
+Oracle may reclaim idle ARM resources. Prevent this with a cron job:
+
+```bash
+crontab -e
+# Add this line (pings the app every 5 minutes):
+*/5 * * * * curl -s http://127.0.0.1:8000/ > /dev/null
+```
+
+## Security Warning
+
+⚠️ **Default deployment uses plain HTTP** — Facebook access tokens are sent over the network unencrypted. For production:
+1. Get a free domain (e.g., freenom.com)
+2. Point it to your VM's public IP
+3. Run: `sudo certbot --nginx -d yourdomain.com`
+
+This enables HTTPS and protects your tokens in transit.
