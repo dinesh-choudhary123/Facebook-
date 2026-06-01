@@ -1,3 +1,11 @@
+# =============================================================================
+# systemd Service — Restaurant Social Automation
+# =============================================================================
+# TEMPLATE FILE — The setup.sh script generates this dynamically with the
+# correct username. If you copy this file manually, replace ALL occurrences
+# of "ubuntu" with your actual Linux username.
+# =============================================================================
+
 [Unit]
 Description=Restaurant Social Automation API
 Documentation=https://github.com/dinesh-choudhary123/Facebook-
